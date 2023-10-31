@@ -40,6 +40,11 @@ def inference(video):
     if get_video_dimensions(video) > (1920, 1920):
         raise gr.Error("Video resolution must not be higher than 1920x1080")
 
+    model = torch.hub.load("PeterL1n/RobustVideoMatting", "mobilenetv3")
+    if torch.cuda.is_available():
+        model = model.cuda()
+
+    convert_video = torch.hub.load("PeterL1n/RobustVideoMatting", "converter")
     convert_video(
         model,  # The loaded model, can be on any device (cpu or cuda).
         input_source=video,  # A video file or an image sequence directory.
@@ -57,19 +62,14 @@ def inference(video):
 
 
 if __name__ == "__main__":
-    model = torch.hub.load("PeterL1n/RobustVideoMatting", "mobilenetv3")
-
     if torch.cuda.is_available():
         free_memory = get_free_memory_gb()
         concurrency_count = int(free_memory // 7)
-        model = model.cuda()
         print(f"Using GPU with concurrency: {concurrency_count}")
         print(f"Available video memory: {free_memory} GB")
     else:
         print("Using CPU")
         concurrency_count = 1
-
-    convert_video = torch.hub.load("PeterL1n/RobustVideoMatting", "converter")
 
     with gr.Blocks(title="Robust Video Matting") as block:
         gr.Markdown("# Robust Video Matting")
