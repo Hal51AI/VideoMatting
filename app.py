@@ -1,3 +1,4 @@
+import os
 import torch
 import gradio as gr
 
@@ -45,4 +46,4 @@ with gr.Blocks(title="Robust Video Matting") as block:
         "<p style='text-align: center'><a href='https://arxiv.org/abs/2108.11515'>Robust High-Resolution Video Matting with Temporal Guidance</a> | <a href='https://github.com/PeterL1n/RobustVideoMatting'>Github Repo</a></p>"
     )
 
-block.queue(api_open=False, max_size=5).launch(debug=True)
+block.queue(api_open=False, max_size=5).launch(auth=("user", os.environ["PASSWORD"]))
