@@ -5,6 +5,7 @@ import gradio as gr
 model = torch.hub.load("PeterL1n/RobustVideoMatting", "mobilenetv3")
 
 if torch.cuda.is_available():
+    print("Using GPU")
     model = model.cuda()
 
 convert_video = torch.hub.load("PeterL1n/RobustVideoMatting", "converter")
