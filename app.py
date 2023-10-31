@@ -35,9 +35,9 @@ def get_free_memory_gb():
 
 
 def inference(video):
-    if get_video_length_av(video.name) > 30:
+    if get_video_length_av(video) > 30:
         raise gr.Error("Length of video cannot be over 30 seconds")
-    if get_video_dimensions(video.name) > (1920, 1920):
+    if get_video_dimensions(video) > (1920, 1920):
         raise gr.Error("Video resolution must not be higher than 1920x1080")
 
     convert_video(
