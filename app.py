@@ -1,3 +1,10 @@
+import os
+
+os.system("pip install gradio --upgrade")
+os.system("pip install torch")
+os.system("pip freeze")
+
+
 import torch
 import gradio as gr
 
