@@ -1,10 +1,3 @@
-import os
-
-os.system("pip install gradio --upgrade")
-os.system("pip install torch")
-os.system("pip freeze")
-
-
 import torch
 import gradio as gr
 
@@ -33,18 +26,23 @@ def inference(video):
     return "com.mp4"
 
 
-title = "Robust Video Matting"
-description = "Gradio demo for Robust Video Matting. To use it, simply upload your video, or click one of the examples to load them. Read more at the links below."
+with gr.Blocks(title="Robust Video Matting") as block:
+    gr.Markdown("# Robust Video Matting")
+    gr.Markdown(
+        "Gradio demo for Robust Video Matting. To use it, simply upload your video, or click one of the examples to load them. Read more at the links below."
+    )
+    with gr.Row():
+        inp = gr.Video(label="Input Video")
+        out = gr.Video(label="Output Video")
+    btn = gr.Button("Run")
+    btn.click(inference, inputs=inp, outputs=out)
 
-article = "<p style='text-align: center'><a href='https://arxiv.org/abs/2108.11515'>Robust High-Resolution Video Matting with Temporal Guidance</a> | <a href='https://github.com/PeterL1n/RobustVideoMatting'>Github Repo</a></p>"
+    gr.Examples(
+        examples=[["example.mp4"]],
+        inputs=[inp],
+    )
+    gr.HTML(
+        "<p style='text-align: center'><a href='https://arxiv.org/abs/2108.11515'>Robust High-Resolution Video Matting with Temporal Guidance</a> | <a href='https://github.com/PeterL1n/RobustVideoMatting'>Github Repo</a></p>"
+    )
 
-examples = [["example.mp4"]]
-gr.Interface(
-    inference,
-    gr.inputs.Video(label="Input"),
-    gr.outputs.Video(label="Output"),
-    title=title,
-    description=description,
-    article=article,
-    examples=examples,
-).launch(debug=True)
+block.queue(api_open=False, max_size=5).launch(debug=True)
