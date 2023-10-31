@@ -2,9 +2,8 @@ import av
 import torch
 import tempfile
 import shutil
+import atexit
 import gradio as gr
-
-temp_directories = []
 
 
 def get_video_length_av(video_path):
@@ -39,12 +38,12 @@ def get_free_memory_gb():
 
 
 def cleanup_temp_directories():
+    print("Deleting temporary files")
     for temp_dir in temp_directories:
         try:
             shutil.rmtree(temp_dir)
         except FileNotFoundError:
             print(f"Could not delete directory {temp_dir}")
-        print(f"Temporary directory {temp_dir} has been removed")
 
 
 def inference(video):
@@ -53,14 +52,9 @@ def inference(video):
     if get_video_dimensions(video) > (1920, 1920):
         raise gr.Error("Video resolution must not be higher than 1920x1080")
 
-    model = torch.hub.load("PeterL1n/RobustVideoMatting", "mobilenetv3")
-    if torch.cuda.is_available():
-        model = model.cuda()
-
     temp_dir = tempfile.mkdtemp()
     temp_directories.append(temp_dir)
 
-    convert_video = torch.hub.load("PeterL1n/RobustVideoMatting", "converter")
     convert_video(
         model,  # The loaded model, can be on any device (cpu or cuda).
         input_source=video,  # A video file or an image sequence directory.
@@ -80,11 +74,18 @@ def inference(video):
 
 
 if __name__ == "__main__":
+    temp_directories = []
+    atexit.register(cleanup_temp_directories)
+
+    model = torch.hub.load("PeterL1n/RobustVideoMatting", "mobilenetv3")
+    convert_video = torch.hub.load("PeterL1n/RobustVideoMatting", "converter")
+
     if torch.cuda.is_available():
         free_memory = get_free_memory_gb()
         concurrency_count = int(free_memory // 7)
         print(f"Using GPU with concurrency: {concurrency_count}")
         print(f"Available video memory: {free_memory} GB")
+        model = model.cuda()
     else:
         print("Using CPU")
         concurrency_count = 1
