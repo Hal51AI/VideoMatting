@@ -1,6 +1,10 @@
 import av
 import torch
+import tempfile
+import shutil
 import gradio as gr
+
+temp_directories = []
 
 
 def get_video_length_av(video_path):
@@ -34,6 +38,15 @@ def get_free_memory_gb():
     return free_memory / 1024**3
 
 
+def cleanup_temp_directories():
+    for temp_dir in temp_directories:
+        try:
+            shutil.rmtree(temp_dir)
+        except FileNotFoundError:
+            print(f"Could not delete directory {temp_dir}")
+        print(f"Temporary directory {temp_dir} has been removed")
+
+
 def inference(video):
     if get_video_length_av(video) > 30:
         raise gr.Error("Length of video cannot be over 30 seconds")
@@ -44,13 +57,18 @@ def inference(video):
     if torch.cuda.is_available():
         model = model.cuda()
 
+    temp_dir = tempfile.mkdtemp()
+    temp_directories.append(temp_dir)
+
     convert_video = torch.hub.load("PeterL1n/RobustVideoMatting", "converter")
     convert_video(
         model,  # The loaded model, can be on any device (cpu or cuda).
         input_source=video,  # A video file or an image sequence directory.
         downsample_ratio=0.25,  # [Optional] If None, make downsampled max size be 512px.
         output_type="video",  # Choose "video" or "png_sequence"
-        output_composition="com.mp4",  # File path if video; directory path if png sequence.
+        output_composition=(
+            temp_dir + "/matted_video.mp4"
+        ),  # File path if video; directory path if png sequence.
         output_alpha=None,  # [Optional] Output the raw alpha prediction.
         output_foreground=None,  # [Optional] Output the raw foreground prediction.
         output_video_mbps=4,  # Output video mbps. Not needed for png sequence.
@@ -58,7 +76,7 @@ def inference(video):
         num_workers=1,  # Only for image sequence input. Reader threads.
         progress=True,  # Print conversion progress.
     )
-    return "com.mp4"
+    return temp_dir + "/matted_video.mp4"
 
 
 if __name__ == "__main__":
