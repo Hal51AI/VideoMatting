@@ -39,6 +39,5 @@ gr.Interface(
     title=title,
     description=description,
     article=article,
-    enable_queue=True,
     examples=examples,
 ).launch(debug=True)
