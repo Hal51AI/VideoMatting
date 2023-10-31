@@ -1,9 +1,13 @@
 import av
+import os
 import torch
 import tempfile
 import shutil
 import atexit
+import subprocess
 import gradio as gr
+
+from convert import convert_video
 
 
 def get_video_length_av(video_path):
@@ -46,6 +50,36 @@ def cleanup_temp_directories():
             print(f"Could not delete directory {temp_dir}")
 
 
+def ffmpeg_remux_audio(source_video_path, dest_video_path, output_path):
+    # Build the ffmpeg command to extract audio and remux into another video
+    command = [
+        "ffmpeg",
+        "-i",
+        dest_video_path,  # Input destination video file
+        "-i",
+        source_video_path,  # Input source video file (for the audio)
+        "-c:v",
+        "copy",  # Copy the video stream as is
+        "-c:a",
+        "copy",  # Copy the audio stream as is
+        "-map",
+        "0:v:0",  # Map the video stream from the destination file
+        "-map",
+        "1:a:0",  # Map the audio stream from the source file
+        output_path,  # Specify the output file path
+    ]
+
+    try:
+        # Run the ffmpeg command
+        subprocess.run(command, check=True)
+    except subprocess.CalledProcessError as e:
+        # Handle errors during the subprocess execution
+        print(f"An error occurred: {e}")
+        return dest_video_path
+
+    return output_path
+
+
 def inference(video):
     if get_video_length_av(video) > 30:
         raise gr.Error("Length of video cannot be over 30 seconds")
@@ -54,15 +88,13 @@ def inference(video):
 
     temp_dir = tempfile.mkdtemp()
     temp_directories.append(temp_dir)
+    output_composition = temp_dir + "/matted_video.mp4"
 
     convert_video(
         model,  # The loaded model, can be on any device (cpu or cuda).
         input_source=video,  # A video file or an image sequence directory.
         downsample_ratio=0.25,  # [Optional] If None, make downsampled max size be 512px.
-        output_type="video",  # Choose "video" or "png_sequence"
-        output_composition=(
-            temp_dir + "/matted_video.mp4"
-        ),  # File path if video; directory path if png sequence.
+        output_composition=output_composition,  # File path if video; directory path if png sequence.
         output_alpha=None,  # [Optional] Output the raw alpha prediction.
         output_foreground=None,  # [Optional] Output the raw foreground prediction.
         output_video_mbps=4,  # Output video mbps. Not needed for png sequence.
@@ -70,7 +102,10 @@ def inference(video):
         num_workers=1,  # Only for image sequence input. Reader threads.
         progress=True,  # Print conversion progress.
     )
-    return temp_dir + "/matted_video.mp4"
+
+    resulting_video = f"{temp_dir}/matted_{os.path.split(video)[1]}"
+
+    return ffmpeg_remux_audio(video, output_composition, resulting_video)
 
 
 if __name__ == "__main__":
@@ -78,7 +113,6 @@ if __name__ == "__main__":
     atexit.register(cleanup_temp_directories)
 
     model = torch.hub.load("PeterL1n/RobustVideoMatting", "mobilenetv3")
-    convert_video = torch.hub.load("PeterL1n/RobustVideoMatting", "converter")
 
     if torch.cuda.is_available():
         free_memory = get_free_memory_gb()
