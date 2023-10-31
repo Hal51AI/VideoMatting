@@ -20,9 +20,10 @@ model = torch.hub.load("PeterL1n/RobustVideoMatting", "mobilenetv3")
 
 if torch.cuda.is_available():
     free_memory = get_free_memory_gb()
-    concurrency_count = int(free_memory // 7.4)
+    concurrency_count = int(free_memory // 7)
     model = model.cuda()
     print(f"Using GPU with concurrency: {concurrency_count}")
+    print(f"Available video memory: {free_memory} GB")
 else:
     print("Using CPU")
     concurrency_count = 1
