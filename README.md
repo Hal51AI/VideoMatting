@@ -1,10 +1,10 @@
 ---
-title: Videomatting
+title: VideoMatting
 emoji: 🐢
 colorFrom: green
 colorTo: indigo
 sdk: gradio
-sdk_version: 3.16.0
+sdk_version: 3.50.2
 app_file: app.py
 pinned: false
 ---
