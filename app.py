@@ -90,12 +90,6 @@ def inference(video):
     temp_directories.append(temp_dir)
     output_composition = temp_dir + "/matted_video.mp4"
 
-    model = torch.hub.load("PeterL1n/RobustVideoMatting", "mobilenetv3")
-    if torch.cuda.is_available():
-        free_memory = get_free_memory_gb()
-        print(f"Available video memory: {free_memory} GB")
-        model = model.cuda()
-
     convert_video(
         model,  # The loaded model, can be on any device (cpu or cuda).
         input_source=video,  # A video file or an image sequence directory.
@@ -118,11 +112,14 @@ if __name__ == "__main__":
     temp_directories = []
     atexit.register(cleanup_temp_directories)
 
+    model = torch.hub.load("PeterL1n/RobustVideoMatting", "mobilenetv3")
+
     if torch.cuda.is_available():
         free_memory = get_free_memory_gb()
         concurrency_count = int(free_memory // 7)
         print(f"Using GPU with concurrency: {concurrency_count}")
         print(f"Available video memory: {free_memory} GB")
+        model = model.cuda()
     else:
         print("Using CPU")
         concurrency_count = 1
