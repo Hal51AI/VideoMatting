@@ -92,6 +92,8 @@ def inference(video):
 
     model = torch.hub.load("PeterL1n/RobustVideoMatting", "mobilenetv3")
     if torch.cuda.is_available():
+        free_memory = get_free_memory_gb()
+        print(f"Available video memory: {free_memory} GB")
         model = model.cuda()
 
     convert_video(
