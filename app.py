@@ -88,8 +88,8 @@ def inference(video):
 
     temp_dir = tempfile.mkdtemp()
     temp_directories.append(temp_dir)
-    output_composition = temp_dir + "/matted_video.mp4"
 
+    output_composition = temp_dir + "/matted_video.mp4"
     convert_video(
         model,  # The loaded model, can be on any device (cpu or cuda).
         input_source=video,  # A video file or an image sequence directory.
@@ -112,7 +112,9 @@ if __name__ == "__main__":
     temp_directories = []
     atexit.register(cleanup_temp_directories)
 
-    model = torch.hub.load("PeterL1n/RobustVideoMatting", "mobilenetv3")
+    model = torch.hub.load(
+        "PeterL1n/RobustVideoMatting", "mobilenetv3", trust_repo=True
+    )
 
     if torch.cuda.is_available():
         free_memory = get_free_memory_gb()
@@ -130,7 +132,7 @@ if __name__ == "__main__":
             "Gradio demo for Robust Video Matting. To use it, simply upload your video, or click one of the examples to load them. Read more at the links below."
         )
         with gr.Row():
-            inp = gr.Video(label="Input Video")
+            inp = gr.Video(label="Input Video", sources=["upload"], include_audio=True)
             out = gr.Video(label="Output Video")
         btn = gr.Button("Run")
         btn.click(inference, inputs=inp, outputs=out)
@@ -144,5 +146,5 @@ if __name__ == "__main__":
         )
 
     block.queue(
-        api_open=False, max_size=5, concurrency_count=concurrency_count
+        api_open=False, max_size=5, default_concurrency_limit=concurrency_count
     ).launch()
