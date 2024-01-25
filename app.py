@@ -145,6 +145,6 @@ if __name__ == "__main__":
             "<p style='text-align: center'><a href='https://arxiv.org/abs/2108.11515'>Robust High-Resolution Video Matting with Temporal Guidance</a> | <a href='https://github.com/PeterL1n/RobustVideoMatting'>Github Repo</a></p>"
         )
 
-    block.queue(
-        api_open=False, max_size=5, default_concurrency_limit=concurrency_count
-    ).launch()
+    block.queue(api_open=False, max_size=5, concurrency_count=concurrency_count).launch(
+        share=False
+    )

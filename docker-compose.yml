@@ -6,10 +6,3 @@ services:
     shm_size: 8g
     ports:
       - "7860:7860"
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              capabilities: [gpu]
-              count: all

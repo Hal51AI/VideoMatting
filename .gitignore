@@ -1,3 +1,7 @@
 com.mp4
 flagged/
 __pycache__/
+*.tfstate
+*.tfstate.backup
+*.terraform/
+*.terraform.lock.hcl
