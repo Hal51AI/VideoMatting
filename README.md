@@ -13,6 +13,8 @@ pinned: false
 
 Remove the background from video files
 
+![gradio](./assets/gradio.png)
+
 # Setup
 
 ## Installation
