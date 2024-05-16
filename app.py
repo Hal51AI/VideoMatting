@@ -1,11 +1,13 @@
-import av
-import os
-import torch
-import tempfile
-import shutil
 import atexit
+import multiprocessing
+import os
+import shutil
 import subprocess
+import tempfile
+
+import av
 import gradio as gr
+import torch
 
 from convert import convert_video
 
@@ -124,7 +126,9 @@ if __name__ == "__main__":
         model = model.cuda()
     else:
         print("Using CPU")
-        concurrency_count = 1
+        cpu_count = multiprocessing.cpu_count()
+        concurrency_count = cpu_count // 8
+
 
     with gr.Blocks(title="Robust Video Matting") as block:
         gr.Markdown("# Robust Video Matting")
